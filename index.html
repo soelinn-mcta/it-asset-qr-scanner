@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Asset Tracker</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 16px; background: var(--tg-theme-bg-color, #fff); color: var(--tg-theme-text-color, #000); }
+    .btn { width: 100%; padding: 12px; background: var(--tg-theme-button-color, #0088cc); color: var(--tg-theme-button-text-color, #fff); border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+    input, select, textarea { width: 100%; padding: 10px; margin: 6px 0 12px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    .card { background: var(--tg-theme-secondary-bg-color, #f4f4f5); padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <h2>IT Asset Manager</h2>
+  
+  <button class="btn" onclick="openScanner()">Scan Asset QR Code</button>
+
+  <form id="assetForm" style="display:none; margin-top: 16px;" onsubmit="handleFormSubmit(event)">
+    <div class="card">
+      <label><b>Asset Tag:</b></label>
+      <input type="text" id="qrData" readonly required />
+    </div>
+
+    <label>Your Name:</label>
+    <input type="text" id="userName" placeholder="John Doe" required />
+
+    <label>Department:</label>
+    <input type="text" id="department" placeholder="Finance / IT / HR" required />
+
+    <label>Action / Reason / Return Condition:</label>
+    <textarea id="reason" rows="3" placeholder="State reason if borrowing OR condition if returning (e.g. Returned with charger)" required></textarea>
+
+    <button type="submit" class="btn" id="submitBtn">Submit Transaction</button>
+  </form>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    // Auto-fill user name if available from Telegram profile
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+      document.getElementById('userName').value = `${tg.initDataUnsafe.user.first_name || ''} ${tg.initDataUnsafe.user.last_name || ''}`.trim();
+    }
+
+    function openScanner() {
+      tg.showScanQrPopup({ text: "Align Asset QR code inside the frame" }, function(qrString) {
+        document.getElementById('qrData').value = qrString;
+        document.getElementById('assetForm').style.display = 'block';
+        tg.closeScanQrPopup();
+        return true;
+      });
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Processing...";
+
+      const MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/7lh2kc4ldu4vcdqnqd2ssrcj2jl2wxwp";
+
+      const payload = {
+        qrData: document.getElementById('qrData').value,
+        name: document.getElementById('userName').value,
+        department: document.getElementById('department').value,
+        reason: document.getElementById('reason').value,
+        telegramUsername: tg.initDataUnsafe?.user?.username || "Unknown"
+      };
+
+      try {
+        await fetch(MAKE_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        tg.showAlert("Transaction successfully logged!", () => {
+          tg.close();
+        });
+      } catch (err) {
+        tg.showAlert("Submission failed. Please try again.");
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit Transaction";
+      }
+    }
+  </script>
+</body>
+</html>
