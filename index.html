@@ -6,10 +6,46 @@
   <title>IT Asset Tracker</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 16px; background: var(--tg-theme-bg-color, #fff); color: var(--tg-theme-text-color, #000); }
-    .btn { width: 100%; padding: 12px; background: var(--tg-theme-button-color, #0088cc); color: var(--tg-theme-button-text-color, #fff); border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
-    input, select, textarea { width: 100%; padding: 10px; margin: 6px 0 12px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-    .card { background: var(--tg-theme-secondary-bg-color, #f4f4f5); padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+      padding: 16px; 
+      background: var(--tg-theme-bg-color, #fff); 
+      color: var(--tg-theme-text-color, #000); 
+    }
+    .btn { 
+      width: 100%; 
+      padding: 12px; 
+      background: var(--tg-theme-button-color, #0088cc); 
+      color: var(--tg-theme-button-text-color, #fff); 
+      border: none; 
+      border-radius: 8px; 
+      font-weight: bold; 
+      margin-top: 10px; 
+      cursor: pointer; 
+    }
+    input, select, textarea { 
+      width: 100%; 
+      padding: 10px; 
+      margin: 6px 0 12px 0; 
+      border: 1px solid #ccc; 
+      border-radius: 6px; 
+      box-sizing: border-box; 
+    }
+    .card { 
+      background: var(--tg-theme-secondary-bg-color, #f4f4f5); 
+      padding: 12px; 
+      border-radius: 8px; 
+      margin-bottom: 12px; 
+    }
+    .status-notice {
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 12px;
+      display: none;
+    }
+    .notice-borrow { background-color: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; }
+    .notice-return { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
   </style>
 </head>
 <body>
@@ -23,13 +59,16 @@
       <input type="text" id="qrData" readonly required />
     </div>
 
+    <!-- Status Banner for Guidance -->
+    <div id="statusNotice" class="status-notice"></div>
+
     <label>Your Name:</label>
     <input type="text" id="userName" placeholder="John Doe" required />
 
     <label>Department:</label>
     <input type="text" id="department" placeholder="Finance / IT / HR" required />
 
-    <label>Action / Reason / Return Condition:</label>
+    <label id="reasonLabel">Action / Reason / Return Condition:</label>
     <textarea id="reason" rows="3" placeholder="State reason if borrowing OR condition if returning (e.g. Returned with charger)" required></textarea>
 
     <button type="submit" class="btn" id="submitBtn">Submit Transaction</button>
@@ -39,7 +78,7 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Auto-fill user name if available from Telegram profile
+    // Auto-fill user name from Telegram profile
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
       document.getElementById('userName').value = `${tg.initDataUnsafe.user.first_name || ''} ${tg.initDataUnsafe.user.last_name || ''}`.trim();
     }
@@ -47,8 +86,15 @@
     function openScanner() {
       tg.showScanQrPopup({ text: "Align Asset QR code inside the frame" }, function(qrString) {
         document.getElementById('qrData').value = qrString;
-        document.getElementById('assetForm').style.display = 'block';
         tg.closeScanQrPopup();
+
+        // Show notice explaining system routing
+        const notice = document.getElementById('statusNotice');
+        notice.className = "status-notice notice-borrow";
+        notice.style.display = "block";
+        notice.innerHTML = "ℹ️ <b>System Routing:</b> If this item is currently available, it will log a <b>NEW BORROW</b>. If it was already checked out, submitting will log a <b>RETURN</b> to clear the existing record.";
+
+        document.getElementById('assetForm').style.display = 'block';
         return true;
       });
     }
