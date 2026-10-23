@@ -38,11 +38,12 @@
       margin-bottom: 12px; 
     }
     .status-notice {
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 13px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
       margin-bottom: 12px;
       display: none;
+      font-weight: 500;
     }
     .notice-borrow { background-color: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; }
     .notice-return { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
@@ -59,7 +60,7 @@
       <input type="text" id="qrData" readonly required />
     </div>
 
-    <!-- Status Banner for Guidance -->
+    <!-- Live Dynamic Banner -->
     <div id="statusNotice" class="status-notice"></div>
 
     <label>Your Name:</label>
@@ -78,25 +79,65 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
+    const MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/7lh2kc4ldu4vcdqnqd2ssrcj2jl2wxwp";
+
     // Auto-fill user name from Telegram profile
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
       document.getElementById('userName').value = `${tg.initDataUnsafe.user.first_name || ''} ${tg.initDataUnsafe.user.last_name || ''}`.trim();
     }
 
     function openScanner() {
-      tg.showScanQrPopup({ text: "Align Asset QR code inside the frame" }, function(qrString) {
+      tg.showScanQrPopup({ text: "Align Asset QR code inside the frame" }, async function(qrString) {
         document.getElementById('qrData').value = qrString;
         tg.closeScanQrPopup();
 
-        // Show notice explaining system routing
-        const notice = document.getElementById('statusNotice');
-        notice.className = "status-notice notice-borrow";
-        notice.style.display = "block";
-        notice.innerHTML = "ℹ️ <b>System Routing:</b> If this item is currently available, it will log a <b>NEW BORROW</b>. If it was already checked out, submitting will log a <b>RETURN</b> to clear the existing record.";
-
-        document.getElementById('assetForm').style.display = 'block';
+        // Perform live lookup via Make.com
+        await checkAssetStatus(qrString);
         return true;
       });
+    }
+
+    async function checkAssetStatus(qrTag) {
+      const notice = document.getElementById('statusNotice');
+      const submitBtn = document.getElementById('submitBtn');
+      const reasonField = document.getElementById('reason');
+
+      try {
+        const response = await fetch(MAKE_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "check", qrData: qrTag })
+        });
+        
+        const data = await response.json();
+
+        if (data.isBorrowed && data.borrowerName) {
+          // Dynamic Telegram Pop-up Alert
+          tg.showAlert(
+            `⚠️ ITEM IS CURRENTLY BORROWED\n\nAsset "${qrTag}" is currently logged under "${data.borrowerName}".\n\nSubmitting will log a RETURN on behalf of ${data.borrowerName}.`
+          );
+
+          notice.className = "status-notice notice-return";
+          notice.style.display = "block";
+          notice.innerHTML = `⚠️ <b>Currently Borrowed by ${data.borrowerName}</b>.<br>Submitting this form will log a <b>RETURN</b> to clear ${data.borrowerName}'s log.`;
+
+          reasonField.value = `Returned on behalf of ${data.borrowerName} (Left in office / Re-assigned)`;
+          submitBtn.innerText = `Submit RETURN for ${data.borrowerName}`;
+        } else {
+          notice.className = "status-notice notice-borrow";
+          notice.style.display = "block";
+          notice.innerHTML = `🟢 <b>Item Available:</b> Submitting this form will log a <b>NEW BORROW</b>.`;
+
+          reasonField.value = "";
+          submitBtn.innerText = "Submit BORROW Transaction";
+        }
+      } catch (err) {
+        notice.className = "status-notice notice-borrow";
+        notice.style.display = "block";
+        notice.innerHTML = "ℹ️ <b>System Routing:</b> Standard Borrow/Return logging active.";
+      }
+
+      document.getElementById('assetForm').style.display = 'block';
     }
 
     async function handleFormSubmit(e) {
@@ -105,9 +146,8 @@
       submitBtn.disabled = true;
       submitBtn.innerText = "Processing...";
 
-      const MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/7lh2kc4ldu4vcdqnqd2ssrcj2jl2wxwp";
-
       const payload = {
+        action: "submit",
         qrData: document.getElementById('qrData').value,
         name: document.getElementById('userName').value,
         department: document.getElementById('department').value,
