@@ -91,36 +91,22 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Configure Webhook Failover Array (Account A -> Account B)
-    const WEBHOOK_URLS = [
-      "https://hook.eu1.make.com/7lh2kc4ldu4vcdqnqd2ssrcj2jl2wxwp", // Primary Webhook (Account A)
-      "https://hook.us2.make.com/59vgubgxue4qojoh9d3jlrej5b8mdmue"  // Secondary Webhook (Account B)
-    ];
+    // Primary Webhook Endpoint (Account B)
+    const WEBHOOK_URL = "https://hook.us2.make.com/59vgubgxue4qojoh9d3jlrej5b8mdmue";
 
-    // Automatic Failover Handler
+    // Direct Webhook Request Handler
     async function sendWebhookRequest(payload) {
-      let lastError = null;
+      const response = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-      for (const url of WEBHOOK_URLS) {
-        if (!url) continue;
-
-        try {
-          const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-
-          if (response.ok) {
-            return response;
-          }
-        } catch (err) {
-          lastError = err;
-          console.warn(`Webhook failed for ${url}, trying backup endpoint...`, err);
-        }
+      if (!response.ok) {
+        throw new Error(`Webhook HTTP Error: ${response.status}`);
       }
 
-      throw lastError || new Error("All configured webhooks failed.");
+      return response;
     }
 
     // Auto-fill user name from Telegram profile
@@ -133,7 +119,7 @@
         document.getElementById('qrData').value = qrString;
         tg.closeScanQrPopup();
 
-        // Perform live status lookup with failover support
+        // Perform live status lookup
         await checkAssetStatus(qrString);
         return true;
       });
@@ -149,7 +135,6 @@
         const data = await response.json();
 
         if (data.isBorrowed && data.borrowerName) {
-          // Dynamic Telegram Pop-up Alert for Borrowed Items
           tg.showAlert(
             `⚠️ ITEM IS CURRENTLY BORROWED\n\nAsset "${qrTag}" is currently logged under "${data.borrowerName}".\n\nSubmitting will log a RETURN on behalf of ${data.borrowerName}.`
           );
