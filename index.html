@@ -156,7 +156,7 @@
           notice.innerHTML = `⚠️ <b>Currently Borrowed by ${borrower}</b>.<br>Submitting this form will log a <b>RETURN</b> to clear ${borrower}'s log.`;
 
           reasonField.value = `Returned asset ${qrTag}`;
-          submitBtn.innerText = `Submit RETURN for ${borrower}`;
+          submitBtn.innerText = `RETURN for ${borrower}`;
         } else {
           // Asset is available -> Show BORROW UI
           notice.className = "status-notice notice-borrow";
@@ -164,14 +164,17 @@
           notice.innerHTML = `🟢 <b>Item Available:</b> Submitting this form will log a <b>NEW BORROW</b>.`;
 
           reasonField.value = "";
-          submitBtn.innerText = "Submit BORROW Transaction";
+          submitBtn.innerText = "BORROW Transaction";
         }
       } catch (err) {
-        console.error("Status check failed:", err);
-        notice.className = "status-notice notice-borrow";
-        notice.style.display = "block";
-        notice.innerHTML = "ℹ️ <b>System Routing:</b> Standard Borrow/Return logging active.";
-        submitBtn.innerText = "Submit BORROW Transaction";
+          console.error("Status check failed:", err);
+          notice.className = "status-notice notice-return";
+          notice.style.display = "block";
+          notice.innerHTML =
+          "❌ <b>Unable to check asset status.</b><br>" +
+          "Please try again. No transaction was submitted.";
+          submitBtn.disabled = true;
+          submitBtn.innerText = "Status Check Failed";
       }
     }
 
