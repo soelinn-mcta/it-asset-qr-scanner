@@ -3,100 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Disable local browser and CDN caching -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+  
+  <!-- Disable local browser & CDN caching -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
 
   <title>IT Asset Tracker</title>
-
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 16px;
-      background: var(--tg-theme-bg-color, #ffffff);
-      color: var(--tg-theme-text-color, #000000);
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+      padding: 16px; 
+      background: var(--tg-theme-bg-color, #ffffff); 
+      color: var(--tg-theme-text-color, #000000); 
     }
-
-    h2 {
-      margin-top: 0;
+    .btn { 
+      width: 100%; 
+      padding: 12px; 
+      background: var(--tg-theme-button-color, #0088cc); 
+      color: var(--tg-theme-button-text-color, #ffffff); 
+      border: none; 
+      border-radius: 8px; 
+      font-weight: bold; 
+      margin-top: 10px; 
+      cursor: pointer; 
     }
-
-    .btn {
-      width: 100%;
-      padding: 12px;
-      background: var(--tg-theme-button-color, #0088cc);
-      color: var(--tg-theme-button-text-color, #ffffff);
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      margin-top: 10px;
-      cursor: pointer;
-      font-size: 15px;
-    }
-
     .btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
-
-    input,
-    select,
-    textarea {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0 12px 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
+    input, select, textarea { 
+      width: 100%; 
+      padding: 10px; 
+      margin: 6px 0 12px 0; 
+      border: 1px solid #ccc; 
+      border-radius: 6px; 
+      box-sizing: border-box; 
       background: var(--tg-theme-secondary-bg-color, #f4f4f5);
       color: var(--tg-theme-text-color, #000000);
-      font-size: 15px;
     }
-
-    .card {
-      background: var(--tg-theme-secondary-bg-color, #f4f4f5);
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 12px;
+    .card { 
+      background: var(--tg-theme-secondary-bg-color, #f4f4f5); 
+      padding: 12px; 
+      border-radius: 8px; 
+      margin-bottom: 12px; 
     }
-
-    .checkbox-card {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px;
-      margin-bottom: 12px;
-      background: var(--tg-theme-secondary-bg-color, #f4f4f5);
-      border-radius: 8px;
-    }
-
-    .checkbox-card input[type="checkbox"] {
-      width: 22px;
-      height: 22px;
-      margin: 0;
-      accent-color: var(--tg-theme-button-color, #0088cc);
-      cursor: pointer;
-      flex: 0 0 auto;
-    }
-
-    .checkbox-card label {
-      margin: 0;
-      cursor: pointer;
-      font-size: 15px;
-      line-height: 1.4;
-    }
-
-    .checkbox-help {
-      display: block;
-      margin-top: 4px;
-      color: #777;
-      font-size: 12px;
-    }
-
     .status-notice {
       padding: 12px;
       border-radius: 8px;
@@ -104,30 +56,9 @@
       margin-bottom: 12px;
       display: none;
       font-weight: 500;
-      line-height: 1.5;
     }
-
-    .notice-borrow {
-      background-color: #e3f2fd;
-      color: #0d47a1;
-      border: 1px solid #bbdefb;
-    }
-
-    .notice-return {
-      background-color: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeeba;
-    }
-
-    .notice-error {
-      background-color: #f8d7da;
-      color: #842029;
-      border: 1px solid #f5c2c7;
-    }
-
-    .required-mark {
-      color: #d00;
-    }
+    .notice-borrow { background-color: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; }
+    .notice-return { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
   </style>
 </head>
 <body>
@@ -139,23 +70,6 @@
     <div class="card">
       <label><b>Asset Tag:</b></label>
       <input type="text" id="qrData" readonly required />
-    </div>
-	
-	<!-- Charger / additional item checkbox -->
-    <div class="checkbox-card">
-      <input
-        type="checkbox"
-        id="withCharger"
-        name="withCharger"
-      >
-
-      <label for="withCharger">
-        <b>With Charger/Additional Item</b>
-        <span class="checkbox-help">
-          Select this when the charger or additional item is included.
-          For returns, select it only when it is being returned.
-        </span>
-      </label>
     </div>
 
     <!-- Live Dynamic Status Banner -->
@@ -226,11 +140,7 @@
       tg.showScanQrPopup({ text: "Align Asset QR code inside the frame" }, async function(qrString) {
         const cleanQr = (qrString || "").trim();
         document.getElementById('qrData').value = cleanQr;
-		
-		// Reset checkbox for every new transaction.
-        // The user must select it manually.
-        document.getElementById("withCharger").checked = false;
-		tg.closeScanQrPopup();
+        tg.closeScanQrPopup();
 
         // Perform live status lookup
         await checkAssetStatus(cleanQr);
@@ -278,7 +188,6 @@
           reasonField.value = "";
           submitBtn.innerText = "BORROW";
         }
-		submitBtn.disabled = false;
       } catch (err) {
           console.error("Status check failed:", err);
           notice.className = "status-notice notice-return";
@@ -291,85 +200,33 @@
       }
     }
 
-async function handleFormSubmit(e) {
-  e.preventDefault();
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Processing...";
 
-  const submitBtn =
-    document.getElementById("submitBtn");
+      const payload = {
+        action: "submit",
+        qrData: document.getElementById('qrData').value,
+        name: document.getElementById('userName').value,
+        department: document.getElementById('department').value,
+        reason: document.getElementById('reason').value,
+        telegramUsername: tg.initDataUnsafe?.user?.username || "Unknown"
+      };
 
-  const payload = {
-    action: "submit",
+      try {
+        await sendWebhookRequest(payload);
 
-    qrData:
-      document.getElementById("qrData").value.trim(),
-
-    name:
-      document.getElementById("userName").value.trim(),
-
-    department:
-      document.getElementById("department").value,
-
-    reason:
-      document.getElementById("reason").value.trim(),
-
-    withCharger:
-      document.getElementById("withCharger").checked,
-
-    telegramUsername:
-      tg.initDataUnsafe?.user?.username || "Unknown"
-  };
-
-  submitBtn.disabled = true;
-  submitBtn.innerText = "Processing...";
-
-  console.log("Submitting transaction:", payload);
-
-  try {
-    const response =
-      await sendWebhookRequest(payload);
-
-    let result = null;
-
-    try {
-      result = await response.json();
-      console.log("Make response:", result);
-    } catch (jsonError) {
-      console.log("Make returned no JSON response.");
-    }
-
-    if (
-      result &&
-      result.success === false
-    ) {
-      throw new Error(
-        result.message ||
-        "Transaction was rejected."
-      );
-    }
-
-    tg.showAlert(
-      "Transaction successfully logged!",
-      function () {
-        tg.close();
+        tg.showAlert("Transaction successfully logged!", () => {
+          tg.close();
+        });
+      } catch (err) {
+        tg.showAlert("Submission failed. Please check your network and try again.");
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit";
       }
-    );
-
-  } catch (err) {
-    console.error(
-      "Transaction submission failed:",
-      err
-    );
-
-    tg.showAlert(
-      "Submission failed: " +
-      (err.message || "Please try again.")
-    );
-
-    submitBtn.disabled = false;
-    submitBtn.innerText =
-      "Submit Transaction";
-  }
-}
+    }
   </script>
 </body>
 </html>
