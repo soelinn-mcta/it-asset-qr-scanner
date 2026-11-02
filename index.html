@@ -78,8 +78,30 @@
     <label>Your Name:</label>
     <input type="text" id="userName" placeholder="John Doe" required />
 
-    <label>Department:</label>
-    <input type="text" id="department" placeholder="Finance / IT / HR" required />
+    <label for="department">Department:</label>
+		<select id="department" name="department" required>
+			<option value="" selected disabled>Select department</option>
+			<option value="Admin">Admin</option>
+			<option value="HR">HR</option>
+			<option value="Operation">Operation</option>
+			<option value="M&E">M&E</option>
+			<option value="Estate">Estate</option>
+			<option value="Finance">Finance</option>
+			<option value="Business">Business</option>
+			<option value="Canteen">Canteen</option>
+			<option value="PE">PE</option>
+			<option value="ISD">ISD</option>
+			<option value="IT">IT</option>
+			<option value="Preschool-SC">Preschool-SC</option>
+			<option value="Lower Primary">Lower Primary</option>
+			<option value="Upper Primary">Upper Primary</option>
+			<option value="High School">High School</option>
+			<option value="CLT">CLT</option>
+			<option value="CLC">CLC</option>
+			<option value="FTC">FTC</option>
+			<option value="Chan Thar">Chan Thar</option>
+			<option value="Other Program">Other Program</option>
+		</select>
 
     <label id="reasonLabel">Action / Reason / Return Condition:</label>
     <textarea id="reason" rows="3" placeholder="State reason if borrowing OR condition if returning (e.g. Returned with charger)" required></textarea>
@@ -164,7 +186,7 @@
           notice.innerHTML = `🟢 <b>Item Available:</b> Submitting this form will log a <b>NEW BORROW</b>.`;
 
           reasonField.value = "";
-          submitBtn.innerText = "BORROW Transaction";
+          submitBtn.innerText = "BORROW";
         }
       } catch (err) {
           console.error("Status check failed:", err);
