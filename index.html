@@ -79,29 +79,29 @@
     <input type="text" id="userName" placeholder="John Doe" required />
 
     <label for="department">Department:</label>
-		<select id="department" name="department" required>
-			<option value="" selected disabled>Select department</option>
-			<option value="Admin">Admin</option>
-			<option value="HR">HR</option>
-			<option value="Operation">Operation</option>
-			<option value="M&E">M&E</option>
-			<option value="Estate">Estate</option>
-			<option value="Finance">Finance</option>
-			<option value="Business">Business</option>
-			<option value="Canteen">Canteen</option>
-			<option value="PE">PE</option>
-			<option value="ISD">ISD</option>
-			<option value="IT">IT</option>
-			<option value="Preschool-SC">Preschool-SC</option>
-			<option value="Lower Primary">Lower Primary</option>
-			<option value="Upper Primary">Upper Primary</option>
-			<option value="High School">High School</option>
-			<option value="CLT">CLT</option>
-			<option value="CLC">CLC</option>
-			<option value="FTC">FTC</option>
-			<option value="Chan Thar">Chan Thar</option>
-			<option value="Other Program">Other Program</option>
-		</select>
+    <select id="department" name="department" required>
+      <option value="" selected disabled>Select department</option>
+      <option value="Admin">Admin</option>
+      <option value="HR">HR</option>
+      <option value="Operation">Operation</option>
+      <option value="M&E">M&E</option>
+      <option value="Estate">Estate</option>
+      <option value="Finance">Finance</option>
+      <option value="Business">Business</option>
+      <option value="Canteen">Canteen</option>
+      <option value="PE">PE</option>
+      <option value="ISD">ISD</option>
+      <option value="IT">IT</option>
+      <option value="Preschool-SC">Preschool-SC</option>
+      <option value="Lower Primary">Lower Primary</option>
+      <option value="Upper Primary">Upper Primary</option>
+      <option value="High School">High School</option>
+      <option value="CLT">CLT</option>
+      <option value="CLC">CLC</option>
+      <option value="FTC">FTC</option>
+      <option value="Chan Thar">Chan Thar</option>
+      <option value="Other Program">Other Program</option>
+    </select>
 
     <label id="reasonLabel">Action / Reason / Return Condition:</label>
     <textarea id="reason" rows="3" placeholder="State reason if borrowing OR condition if returning (e.g. Returned with charger)" required></textarea>
@@ -113,12 +113,23 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Primary Webhook Endpoint
-    const WEBHOOK_URL = "https://hook.us2.make.com/frd5d19ppv5o71s3gg9dysm5fcq4vjvf";
+    // 1. Read the ?bot= URL parameter (Defaults to "1" if missing)
+    const urlParams = new URLSearchParams(window.location.search);
+    const botId = urlParams.get('bot') || "1";
+
+    // 2. Map of Webhook URLs for each Bot / Make.com Account
+    const WEBHOOKS = {
+      "1": "https://hook.us2.make.com/frd5d19ppv5o71s3gg9dysm5fcq4vjvf", // Bot 1 (Your existing Make webhook)
+      "2": "https://hook.us2.make.com/7rabvdgm6pmtgnnnv0rm24uo27honr4r",         // Bot 2 (Replace with Make Account 2 Webhook)
+      "3": "https://hook.us2.make.com/YOUR_BOT_3_WEBHOOK_HERE"          // Bot 3 (Replace with Make Account 3 Webhook)
+    };
+
+    // Determine active webhook endpoint
+    const ACTIVE_WEBHOOK_URL = WEBHOOKS[botId] || WEBHOOKS["1"];
 
     // Direct Webhook Request Handler
     async function sendWebhookRequest(payload) {
-      const response = await fetch(WEBHOOK_URL, {
+      const response = await fetch(ACTIVE_WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
